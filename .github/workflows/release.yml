@@ -65,12 +65,14 @@ jobs:
         with:
           name: Qualcomm-FM-Radio-Debug-arm64-v8a
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Qualcomm-FM-Radio-Release-arm64-v8a
           path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
 
   publish-release:
     name: Publish GitHub Release & Release Notes
