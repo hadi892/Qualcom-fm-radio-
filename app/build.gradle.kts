@@ -44,10 +44,12 @@ android {
       val relConfig = signingConfigs.getByName("release")
       if (relConfig.storeFile?.exists() == true) {
         signingConfig = relConfig
+      } else {
+        signingConfig = signingConfigs.getByName("debug")
       }
     }
     debug {
-      // Use default AGP debug signing
+      signingConfig = signingConfigs.getByName("debug")
     }
   }
   compileOptions {
