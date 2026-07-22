@@ -45,11 +45,13 @@ android {
       if (relConfig.storeFile?.exists() == true) {
         signingConfig = relConfig
       } else {
-        signingConfig = signingConfigs.getByName("debug")
+        signingConfigs.findByName("debug")?.let {
+          signingConfig = it
+        }
       }
     }
     debug {
-      signingConfig = signingConfigs.getByName("debug")
+      // Default AGP debug signing config is automatically used
     }
   }
   compileOptions {

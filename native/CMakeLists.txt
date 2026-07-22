@@ -23,4 +23,5 @@ target_include_directories(
 target_link_libraries(
     qcom_fm_jni
     ${log-lib}
+    dl
 )
