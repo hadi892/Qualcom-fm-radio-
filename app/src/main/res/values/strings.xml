@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Qualcomm FM</string>
+    <string name="radio_service_channel_id">fm_radio_playback_channel</string>
+    <string name="radio_service_channel_name">FM Radio Playback</string>
+</resources>

@@ -1,0 +1,6 @@
+{
+  "name": "Qualcomm FM Radio",
+  "description": "Standalone Qualcomm Snapdragon FM Radio application targeting Samsung Galaxy Tab A9+ (SM-X216B) with native HAL auto-detection, RDS, scan, presets, and audio routing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
