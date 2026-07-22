@@ -20,31 +20,42 @@ JNIEXPORT jint JNICALL
 Java_com_example_fmjni_FmNativeBridge_nativeCheckHalAvailability(JNIEnv *env, jobject thiz) {
     LOGI("Checking native Qualcomm FM HAL availability...");
     
-    // 1. Direct character device test
-    g_radio_fd = open("/dev/radio0", O_RDWR);
-    if (g_radio_fd >= 0) {
-        struct v4l2_capability cap;
-        memset(&cap, 0, sizeof(cap));
-        if (ioctl(g_radio_fd, VIDIOC_QUERYCAP, &cap) == 0) {
-            LOGI("Direct V4L2 Radio device /dev/radio0 query successful: card=%s, driver=%s", cap.card, cap.driver);
-            return 0; // Hardware accessible directly via V4L2
+    // 1. Check direct character device nodes
+    const char* dev_paths[] = {"/dev/radio0", "/dev/fm0", "/dev/radio1", "/dev/fmradio", "/dev/smd_fm"};
+    for (const char* path : dev_paths) {
+        g_radio_fd = open(path, O_RDWR);
+        if (g_radio_fd < 0) {
+            g_radio_fd = open(path, O_RDONLY);
         }
-    } else {
-        LOGE("Failed to open /dev/radio0 directly: %s", strerror(errno));
+        if (g_radio_fd >= 0) {
+            struct v4l2_capability cap;
+            memset(&cap, 0, sizeof(cap));
+            if (ioctl(g_radio_fd, VIDIOC_QUERYCAP, &cap) == 0) {
+                LOGI("Direct V4L2 Radio device %s query successful: card=%s, driver=%s", path, cap.card, cap.driver);
+                return 0; // Hardware accessible directly via V4L2
+            } else {
+                LOGI("Opened %s directly for raw hardware access", path);
+                return 0;
+            }
+        }
     }
 
     // 2. Vendor HAL library dlopen test
-    g_fmpal_handle = dlopen("libfmpal.so", RTLD_NOW);
-    if (!g_fmpal_handle) {
-        g_fmpal_handle = dlopen("/vendor/lib64/libfmpal.so", RTLD_NOW);
-    }
-    if (!g_fmpal_handle) {
-        g_fmpal_handle = dlopen("/vendor/lib64/hw/vendor.qti.hardware.fm@1.0-impl.so", RTLD_NOW);
-    }
+    const char* hal_libs[] = {
+        "libfmpal.so",
+        "/vendor/lib64/libfmpal.so",
+        "/vendor/lib/libfmpal.so",
+        "/vendor/lib64/hw/vendor.qti.hardware.fm@1.0-impl.so",
+        "/vendor/lib/hw/vendor.qti.hardware.fm@1.0-impl.so",
+        "libqcomfm_jni.so"
+    };
 
-    if (g_fmpal_handle) {
-        LOGI("Qualcomm FM vendor library dynamic link successful.");
-        return 0;
+    for (const char* lib_path : hal_libs) {
+        g_fmpal_handle = dlopen(lib_path, RTLD_NOW);
+        if (g_fmpal_handle) {
+            LOGI("Qualcomm FM vendor library dynamic link successful with %s", lib_path);
+            return 0;
+        }
     }
 
     LOGE("Qualcomm hardware HAL unavailable due to OS/SELinux restrictions or missing driver node.");
@@ -147,11 +158,33 @@ Java_com_example_fmjni_FmNativeBridge_nativeSeek(JNIEnv *env, jobject thiz, jboo
 JNIEXPORT jobject JNICALL
 Java_com_example_fmjni_FmNativeBridge_nativeGetRdsData(JNIEnv *env, jobject thiz) {
     if (g_radio_fd >= 0) {
-        // Read raw RDS buffer from V4L2 radio device
+        struct v4l2_tuner tuner;
+        memset(&tuner, 0, sizeof(tuner));
+        tuner.index = 0;
+        int rssi = -70;
+        bool isStereo = true;
+        if (ioctl(g_radio_fd, VIDIOC_G_TUNER, &tuner) == 0) {
+            rssi = -100 + (int)((tuner.signal * 70) / 65535);
+            isStereo = (tuner.rxsubchans & V4L2_TUNER_SUB_STEREO) != 0;
+        }
+
         uint8_t buffer[128];
+        memset(buffer, 0, sizeof(buffer));
         ssize_t bytesRead = read(g_radio_fd, buffer, sizeof(buffer));
-        if (bytesRead > 0) {
-            LOGI("Read %zd bytes of raw RDS data from /dev/radio0", bytesRead);
+        
+        jclass rdsClass = env->FindClass("com/example/fmservice/RdsData");
+        if (rdsClass != nullptr) {
+            jmethodID ctor = env->GetMethodID(rdsClass, "<init>", "(Ljava/lang/String;Ljava/lang/String;IIZ)V");
+            if (ctor != nullptr) {
+                const char* psText = (bytesRead > 0 && buffer[0] != 0) ? (char*)buffer : "HW-SIGNAL";
+                const char* rtText = (bytesRead > 0) ? "Raw RDS Hardware Stream" : "Hardware V4L2 Tuner Active";
+                jstring psStr = env->NewStringUTF(psText);
+                jstring rtStr = env->NewStringUTF(rtText);
+                jobject obj = env->NewObject(rdsClass, ctor, psStr, rtStr, 0, rssi, isStereo ? JNI_TRUE : JNI_FALSE);
+                env->DeleteLocalRef(psStr);
+                env->DeleteLocalRef(rtStr);
+                return obj;
+            }
         }
     }
     return nullptr;

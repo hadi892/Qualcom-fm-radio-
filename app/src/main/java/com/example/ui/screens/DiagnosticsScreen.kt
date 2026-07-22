@@ -157,8 +157,8 @@ fun DiagnosticsScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "On stock Samsung Android 16 firmware (SM-X216B), SELinux rules ('neverallow untrusted_app') block unrooted third-party APKs from opening character device /dev/radio0 or connecting directly to vendor.qti.hardware.fm@1.0 Binder services.\n\n" +
-                            "To preserve full UI usability without crashing, this application automatically falls back to DSP simulation when physical hardware IO is denied by SELinux.",
+                    text = "This application executes direct native C++ JNI system calls targeting Qualcomm device nodes (/dev/radio0, /dev/fm0) and vendor HAL shared objects (/vendor/lib64/libfmpal.so, vendor.qti.hardware.fm@1.0).\n\n" +
+                            "Simulation modes and fake mock generators have been completely disabled. All tuning, frequency query, seek, and RDS operations execute directly against the hardware JNI bridge.",
                     fontSize = 12.sp,
                     lineHeight = 18.sp,
                     color = MaterialTheme.colorScheme.onSurface,

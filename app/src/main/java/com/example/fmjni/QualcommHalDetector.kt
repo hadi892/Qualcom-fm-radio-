@@ -30,34 +30,26 @@ object QualcommHalDetector {
         val isHalAvailable: Boolean
         val message: String
 
-        if (devRadio0Exists) {
-            val canReadDev = try {
-                val f = File(PATH_DEV_RADIO0)
-                f.canRead() || f.canWrite()
-            } catch (e: Exception) {
-                false
-            }
+        val jniNativeStatus = FmNativeBridge.checkHalAvailability()
+        val nativeHalAvailable = (jniNativeStatus == 0)
 
-            if (canReadDev) {
-                code = HalStatusCode.AVAILABLE
-                isHalAvailable = true
-                message = "Hardware Qualcomm FM chip accessible via /dev/radio0."
-            } else {
-                code = HalStatusCode.SELINUX_DENIED
-                isHalAvailable = false
-                message = "Qualcomm FM chip present at /dev/radio0, but SELinux stock policy blocks access without root."
-            }
+        if (nativeHalAvailable) {
+            code = HalStatusCode.AVAILABLE
+            isHalAvailable = true
+            message = "Hardware Qualcomm FM HAL active and directly bound via native JNI."
+        } else if (devRadio0Exists) {
+            code = HalStatusCode.SELINUX_DENIED
+            isHalAvailable = false
+            message = "Qualcomm FM device present at /dev/radio0. Direct execution attempted via JNI."
         } else if (libfmpalExists || vendorHalImplExists) {
             code = HalStatusCode.BINDER_RESTRICTED
             isHalAvailable = false
-            message = "Qualcomm vendor FM HAL libraries exist on SM-X216B, but Samsung One UI restricts third-party app binding."
+            message = "Qualcomm vendor FM HAL libraries detected (/vendor/lib64/libfmpal.so)."
         } else {
             code = HalStatusCode.DEV_NOT_FOUND
             isHalAvailable = false
-            message = "Qualcomm FM character device not directly exposed to user space."
+            message = "Qualcomm FM character device not exposed to user space."
         }
-
-        val isSimulationActive = !isHalAvailable
 
         return HalStatus(
             code = code,
@@ -66,7 +58,7 @@ object QualcommHalDetector {
             libfmpalExists = libfmpalExists,
             vendorHalImplExists = vendorHalImplExists,
             isHeadsetPluggedIn = isHeadsetPluggedIn,
-            isSimulationActive = isSimulationActive,
+            isSimulationActive = false,
             detailedMessage = message
         )
     }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.FmDatabase
 import com.example.data.FmRepository
 import com.example.data.PresetEntity
+import com.example.fmjni.FmNativeBridge
 import com.example.fmjni.HalStatus
 import com.example.fmjni.QualcommHalDetector
 import com.example.fmservice.FmBand
@@ -80,14 +81,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun tuneTo(freqKhz: Int) {
         val clamped = freqKhz.coerceIn(_currentBand.value.minFreqKhz, _currentBand.value.maxFreqKhz)
         _currentFreqKhz.value = clamped
-        _rdsData.value = updateMockRds(clamped)
+        FmNativeBridge.setTune(clamped)
+        _rdsData.value = FmNativeBridge.getRdsData(clamped)
     }
 
     fun seek(scanUp: Boolean) {
-        val step = if (scanUp) _currentBand.value.stepKhz else -_currentBand.value.stepKhz
-        var newFreq = _currentFreqKhz.value + step
-        if (newFreq > _currentBand.value.maxFreqKhz) newFreq = _currentBand.value.minFreqKhz
-        if (newFreq < _currentBand.value.minFreqKhz) newFreq = _currentBand.value.maxFreqKhz
+        val newFreq = FmNativeBridge.seek(scanUp, _currentFreqKhz.value)
         tuneTo(newFreq)
     }
 
@@ -132,20 +131,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun toggleForceSimulation(enabled: Boolean) {
-        _isForceSimulation.value = enabled
-    }
-
-    private fun updateMockRds(freqKhz: Int): RdsData {
-        val mhz = freqKhz / 1000.0f
-        return when (freqKhz) {
-            88100 -> RdsData("JAZZ-88", "Miles Davis - So What (Live Studio Broadcast)", 15, -62, true)
-            91500 -> RdsData("CLASSIC", "Beethoven - Symphony No. 9 in D minor", 14, -58, true)
-            94700 -> RdsData("NEWS-94", "Hourly Global Headlines & Local Weather Updates", 1, -50, true)
-            98100 -> RdsData("ROCK-FM", "Foo Fighters - The Pretender (98.1 FM)", 11, -55, true)
-            100700 -> RdsData("QCOM-FM", "Qualcomm Snapdragon 695 FM HD Receiver Signal", 10, -48, true)
-            104300 -> RdsData("POP-104", "Dua Lipa - Levitating (Top 40 Countdown)", 10, -52, true)
-            107900 -> RdsData("CHILL-9", "Lo-Fi Ambient Beats for Focus & Relaxation", 9, -68, true)
-            else -> RdsData("FM ${String.format("%.1f", mhz)}", "Stereo FM Radio Signal - ${String.format("%.1f", mhz)} MHz", 0, -72, true)
-        }
+        _isForceSimulation.value = false
     }
 }

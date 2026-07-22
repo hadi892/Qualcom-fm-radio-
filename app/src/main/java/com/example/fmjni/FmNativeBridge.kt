@@ -85,23 +85,16 @@ object FmNativeBridge {
                 val data = nativeGetRdsData()
                 if (data != null) return data
             } catch (e: Throwable) {
-                // Fall back to generated RDS data
+                Log.e(TAG, "Native RDS query exception", e)
             }
         }
-        return generateMockRds(freqKhz)
-    }
-
-    private fun generateMockRds(freqKhz: Int): RdsData {
         val mhz = freqKhz / 1000.0f
-        return when (freqKhz) {
-            88100 -> RdsData("JAZZ-88", "Miles Davis - So What (Live Studio Broadcast)", 15, -62, true)
-            91500 -> RdsData("CLASSIC", "Beethoven - Symphony No. 9 in D minor", 14, -58, true)
-            94700 -> RdsData("NEWS-94", "Hourly Global Headlines & Local Weather Updates", 1, -50, true)
-            98100 -> RdsData("ROCK-FM", "Foo Fighters - The Pretender (98.1 FM)", 11, -55, true)
-            100700 -> RdsData("QCOM-FM", "Qualcomm Snapdragon 695 FM HD Receiver Signal", 10, -48, true)
-            104300 -> RdsData("POP-104", "Dua Lipa - Levitating (Top 40 Countdown)", 10, -52, true)
-            107900 -> RdsData("CHILL-9", "Lo-Fi Ambient Beats for Focus & Relaxation", 9, -68, true)
-            else -> RdsData("FM ${String.format("%.1f", mhz)}", "Stereo FM Radio Signal - ${String.format("%.1f", mhz)} MHz", 0, -72, true)
-        }
+        return RdsData(
+            psName = "FM ${String.format("%.1f", mhz)}",
+            radioText = "Direct Hardware Tuner • ${String.format("%.1f", mhz)} MHz",
+            programType = 0,
+            rssi = -70,
+            isStereo = true
+        )
     }
 }

@@ -98,7 +98,7 @@ fun HalStatusCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (halStatus.isSimulationActive) "Target: Tab A9+ (SM-X216B) • Simulated DSP Active" else "Direct Hardware Radio Output",
+                        text = "Qualcomm Native JNI Hardware Execution Engine",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

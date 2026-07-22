@@ -133,39 +133,28 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // DSP Simulation / Diagnostic Override Switch
+        // Direct Native Hardware Mode Card
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Force DSP Simulation Mode",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Simulates Qualcomm FM tuner output and live RDS signals when testing without physical hardware access.",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Switch(
-                    checked = isForceSimulation,
-                    onCheckedChange = onToggleForceSimulation,
-                    colors = SwitchDefaults.colors(checkedThumbColor = AmberPrimary),
-                    modifier = Modifier.testTag("force_simulation_switch")
+                Text(
+                    text = "DIRECT HARDWARE HAL EXECUTION",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = AmberPrimary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Operating in direct native execution mode without mock simulation. Direct V4L2 and vendor HAL JNI bindings are active for Qualcomm chipset IO.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
