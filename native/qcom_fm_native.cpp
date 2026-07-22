@@ -11,6 +11,7 @@
 #include <linux/videodev2.h>
 #include <dlfcn.h>
 #include <cstring>
+#include <cerrno>
 
 static int g_radio_fd = -1;
 static void* g_fmpal_handle = nullptr;
@@ -100,11 +101,11 @@ Java_com_example_fmjni_FmNativeBridge_nativeSetTune(JNIEnv *env, jobject thiz, j
         freq.type = V4L2_TUNER_RADIO;
         // V4L2 radio frequency is specified in 62.5 Hz units (or 1/16 MHz)
         freq.frequency = (unsigned int)((freqKhz * 16) / 1000);
-        if (ioctl(g_radio_fd, VIDIOC_S_FREQ, &freq) == 0) {
-            LOGI("VIDIOC_S_FREQ ioctl succeeded for %d kHz", freqKhz);
+        if (ioctl(g_radio_fd, VIDIOC_S_FREQUENCY, &freq) == 0) {
+            LOGI("VIDIOC_S_FREQUENCY ioctl succeeded for %d kHz", freqKhz);
             return JNI_TRUE;
         } else {
-            LOGE("VIDIOC_S_FREQ ioctl failed: %s", strerror(errno));
+            LOGE("VIDIOC_S_FREQUENCY ioctl failed: %s", strerror(errno));
         }
     }
     return JNI_FALSE;
@@ -117,9 +118,9 @@ Java_com_example_fmjni_FmNativeBridge_nativeGetFreq(JNIEnv *env, jobject thiz) {
         memset(&freq, 0, sizeof(freq));
         freq.tuner = 0;
         freq.type = V4L2_TUNER_RADIO;
-        if (ioctl(g_radio_fd, VIDIOC_G_FREQ, &freq) == 0) {
+        if (ioctl(g_radio_fd, VIDIOC_G_FREQUENCY, &freq) == 0) {
             int freqKhz = (freq.frequency * 1000) / 16;
-            LOGI("VIDIOC_G_FREQ returned %d kHz", freqKhz);
+            LOGI("VIDIOC_G_FREQUENCY returned %d kHz", freqKhz);
             return freqKhz;
         }
     }

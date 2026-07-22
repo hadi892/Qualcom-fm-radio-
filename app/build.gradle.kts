@@ -36,6 +36,12 @@ android {
     }
   }
 
+  externalNativeBuild {
+    cmake {
+      path = file("../native/CMakeLists.txt")
+    }
+  }
+
   buildTypes {
     release {
       isCrunchPngs = false
@@ -45,13 +51,11 @@ android {
       if (relConfig.storeFile?.exists() == true) {
         signingConfig = relConfig
       } else {
-        signingConfigs.findByName("debug")?.let {
-          signingConfig = it
-        }
+        signingConfig = signingConfigs.getByName("debug")
       }
     }
     debug {
-      // Default AGP debug signing config is automatically used
+      signingConfig = signingConfigs.getByName("debug")
     }
   }
   compileOptions {
