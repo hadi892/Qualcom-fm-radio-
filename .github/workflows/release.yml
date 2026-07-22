@@ -44,9 +44,13 @@ jobs:
           gradle-version: 'current'
 
       - name: Decode Release Keystore (If Provided)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ github.workspace }}/release.keystore"
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Decoding release signing keystore..."
+            echo "$KEYSTORE_BASE64" | base64 -d > "${{ github.workspace }}/release.keystore"
+          fi
 
       - name: Build Debug & Release APKs
         env:
