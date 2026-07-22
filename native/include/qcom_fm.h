@@ -21,19 +21,25 @@ extern "C" {
 #endif
 
 JNIEXPORT jint JNICALL
-Java_com_example_fmjni_FmNativeBridge_nativeInit(JNIEnv *env, jobject thiz);
+Java_com_example_fmjni_FmNativeBridge_nativeCheckHalAvailability(JNIEnv *env, jobject thiz);
 
-JNIEXPORT jint JNICALL
-Java_com_example_fmjni_FmNativeBridge_nativeEnable(JNIEnv *env, jobject thiz, jint mode, jint band, jint space);
+JNIEXPORT jboolean JNICALL
+Java_com_example_fmjni_FmNativeBridge_nativeEnable(JNIEnv *env, jobject thiz, jint band, jint spacing, jint emphasis);
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_example_fmjni_FmNativeBridge_nativeDisable(JNIEnv *env, jobject thiz);
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jboolean JNICALL
 Java_com_example_fmjni_FmNativeBridge_nativeSetTune(JNIEnv *env, jobject thiz, jint freqKhz);
 
 JNIEXPORT jint JNICALL
+Java_com_example_fmjni_FmNativeBridge_nativeGetFreq(JNIEnv *env, jobject thiz);
+
+JNIEXPORT jint JNICALL
 Java_com_example_fmjni_FmNativeBridge_nativeSeek(JNIEnv *env, jobject thiz, jboolean scanUp);
+
+JNIEXPORT jobject JNICALL
+Java_com_example_fmjni_FmNativeBridge_nativeGetRdsData(JNIEnv *env, jobject thiz);
 
 #ifdef __cplusplus
 }
